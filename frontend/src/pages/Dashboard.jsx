@@ -178,6 +178,12 @@ export default function Dashboard() {
             >
               Update Profile Details
             </button>
+            <button
+              onClick={() => navigate('/tender-upload')}
+              className="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-xl"
+            >
+              Upload Tender
+            </button>
           </div>
         </div>
 
