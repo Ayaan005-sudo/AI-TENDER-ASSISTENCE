@@ -1,13 +1,17 @@
-
 import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import ProfileSetup from './pages/ProfileSetup';
+import Dashboard from './pages/Dashboard';
 
 function App() {
-  
   return (
-    <>
-    <h1 className='text-red-700'>hello man</h1>
-    </>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<ProfileSetup />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
