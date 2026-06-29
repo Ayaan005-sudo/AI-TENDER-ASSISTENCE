@@ -33,6 +33,7 @@ const TenderUpload = () => {
   const [preferredLanguage, setPreferredLanguage] = useState("english");
   const [email, setEmail] = useState("");
   const [tenderName, setTenderName] = useState("");
+  const [savedMessage, setSavedMessage] = useState("");
 
   // Load user details from localStorage on mount
   useEffect(() => {
@@ -123,6 +124,7 @@ const TenderUpload = () => {
     for (let [key, value] of formData.entries()) {
       console.log("FormData", key, value);
     }
+    
 
     try {
       const response = await fetch("http://localhost:3000/api/tenders/analyze", {
@@ -212,6 +214,15 @@ const TenderUpload = () => {
         >
           {t("back")}
         </button>
+        {/* Add to Dashboard button */}
+        <button
+          onClick={handleAddToDashboard}
+          disabled={!result || loading}
+          className="mt-4 ml-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded"
+        >
+          Add to Dashboard
+        </button>
+        {savedMessage && <p className="mt-2 text-green-400">{savedMessage}</p>}
       </div>
     );
   };

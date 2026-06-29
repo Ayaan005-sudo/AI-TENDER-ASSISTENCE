@@ -208,6 +208,7 @@ export default function ProfileSetup() {
             </p>
           </div>
 
+
           {/* Quick Language Toggle */}
           <div className="flex items-center gap-2 self-start sm:self-center bg-slate-900/60 p-1.5 rounded-lg border border-slate-700/40">
             <Languages className="w-4 h-4 text-slate-400 ml-1.5" />
@@ -396,6 +397,7 @@ export default function ProfileSetup() {
               className="w-full bg-slate-900 border border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl py-3 px-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-4 transition-all duration-200 resize-none"
             />
           </div>
+          
 
           {/* Submit Button */}
           <button

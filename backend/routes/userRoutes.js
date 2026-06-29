@@ -67,6 +67,8 @@ router.post("/profile", async (req, res) => {
   }
 });
 
+
+
 // @route   GET /api/users/profile/:email
 // @desc    Get company profile details by email
 // @access  Public

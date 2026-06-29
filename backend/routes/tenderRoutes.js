@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const pdfParse = require('pdf-parse');
+
+
 async function extractTextFromPDF(buffer) {
   const data = await pdfParse(buffer);
   return data.text;
@@ -54,6 +56,7 @@ async function callGroqAPI(prompt) {
  *
  * Returns AI analysis result and stores it in MongoDB.
  */
+
 router.post('/analyze', upload.single('file'), async (req, res) => {
   try {
     const { email, tenderName } = req.body;
@@ -100,7 +103,37 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
     console.log('Groq Response:', JSON.stringify(analysis));
 
     // Prepare data for storage
-    const tenderDoc = new Tender({
+    // const tenderDoc = new Tender({
+    //   userEmail: email.toLowerCase(),
+    //   tenderName,
+    //   summary: analysis.summary || '',
+    //   fitScore: analysis.fitScore || 0,
+    //   eligibilityGap: analysis.eligibilityGap || [],
+    //   requiredDocuments: analysis.requiredDocuments || [],
+    //   reverseTimeline: (analysis.reverseTimeline || []).map(item => ({
+    //     task: item.task,
+    //     date: new Date(item.date),
+    //   })),
+    //   deadline: analysis.deadline ? new Date(analysis.deadline) : undefined,
+    // });
+
+    // await tenderDoc.save();
+
+    return res.status(200).json({ success: true, data: analysis });
+  } catch (error) {
+    console.error('Error analyzing tender:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
+  }
+});
+
+// Save analysis to dashboard
+router.post('/save', async (req, res) => {
+  try {
+    const { email, tenderName, analysis } = req.body;
+    if (!email || !tenderName || !analysis) {
+      return res.status(400).json({ success: false, message: 'email, tenderName and analysis are required' });
+    }
+    const tender = new Tender({
       userEmail: email.toLowerCase(),
       tenderName,
       summary: analysis.summary || '',
@@ -109,16 +142,14 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
       requiredDocuments: analysis.requiredDocuments || [],
       reverseTimeline: (analysis.reverseTimeline || []).map(item => ({
         task: item.task,
-        date: new Date(item.date),
+        date: item.date ? new Date(item.date) : undefined,
       })),
       deadline: analysis.deadline ? new Date(analysis.deadline) : undefined,
     });
-
-    await tenderDoc.save();
-
-    return res.status(201).json({ success: true, data: tenderDoc });
+    await tender.save();
+    return res.status(201).json({ success: true, data: tender });
   } catch (error) {
-    console.error('Error analyzing tender:', error);
+    console.error('Error saving tender:', error);
     return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
