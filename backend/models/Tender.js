@@ -49,6 +49,7 @@ const tenderSchema = new mongoose.Schema(
       experience: { type: String },
       turnover: { type: String },
     },
+    isExpired: { type: Boolean, default: false },
     reminderEnabled: { type: Boolean, default: false },
   },
   { timestamps: { createdAt: true, updatedAt: true } }

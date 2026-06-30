@@ -51,6 +51,24 @@ async function sendConfirmationEmail(toEmail, tenderName, reverseTimeline, deadl
   await transporter.sendMail(mailOptions);
 }
 
-module.exports = { sendConfirmationEmail };
+// Send reminder email for upcoming task
+async function sendReminderEmail(toEmail, tenderName, task, date) {
+  const dateStr = typeof date === 'string' ? date.split('T')[0] : date?.toISOString().split('T')[0] || '';
+  const htmlBody = `
+    <h2>⏰ Reminder: ${task} due soon for ${tenderName}</h2>
+    <p>Task: <strong>${task}</strong></p>
+    <p>Due Date: <strong>${dateStr}</strong></p>
+    <p>Please make sure to complete this task on time.</p>
+  `;
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: toEmail,
+    subject: `Reminder: ${task} due soon for ${tenderName}`,
+    html: htmlBody,
+  };
+  await transporter.sendMail(mailOptions);
+}
+
+module.exports = { sendConfirmationEmail, sendReminderEmail };
 
 

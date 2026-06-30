@@ -209,7 +209,18 @@ router.delete('/:id', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
+router.post('/test-reminders', async (req, res) => {
+  try {
+    const { checkAndSendReminders } = require('../utils/reminderScheduler');
+    await checkAndSendReminders();
+    res.status(200).json({ success: true, message: 'Reminder check executed' });
+  } catch (err) {
+    console.error('Error in test reminders:', err);
+    res.status(500).json({ success: false, message: 'Internal Server Error', error: err.message });
+  }
+});
 
 module.exports = router;
+
 
 

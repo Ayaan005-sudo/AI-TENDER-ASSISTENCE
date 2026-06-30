@@ -45,7 +45,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/userRoutes');
 const tenderRoutes = require('./routes/tenderRoutes');
-
+const { startReminderScheduler } = require('./utils/reminderScheduler');
 const app = express();
 
 app.use(express.json());
@@ -61,4 +61,5 @@ mongoose.connect(process.env.MONGO_URI)
 
 app.listen(port, () => {
     console.log('app is listening to port ' + port);
+    startReminderScheduler();
 });
