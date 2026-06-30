@@ -20,6 +20,11 @@ const userSchema = new mongoose.Schema(
       required: [true, "Business Type is required"],
       trim: true,
     },
+    industryType: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     experience: {
       type: String, // e.g. "3 years", "5+ years"
       required: [true, "Experience is required"],

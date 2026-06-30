@@ -215,6 +215,15 @@ const TenderUpload = () => {
           </section>
         )}
         {/* Reverse Timeline */}
+        {result.isExpired && (
+          <section className="bg-red-900/30 border border-red-500 rounded-md p-4">
+            <p className="text-red-400 font-semibold">
+              ⚠️ {preferredLanguage === "hindi"
+                ? "इस टेंडर की समय सीमा समाप्त हो चुकी है।"
+                : "This tender's deadline has already passed."}
+            </p>
+          </section>
+        )}
         {reverseTimeline.length > 0 && (
           <section>
             <h2 className="text-xl font-semibold mb-2">{t("timeline")}</h2>

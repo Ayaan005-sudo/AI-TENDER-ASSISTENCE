@@ -71,6 +71,19 @@ const businessTypes = [
   { value: "MSME/Cooperative", labelEn: "MSME / Cooperative Society", labelHi: "एमएसएमई / सहकारी समिति" }
 ];
 
+// Industry / Type of Work options
+const industryTypes = [
+  { value: "Construction & Civil Works", labelEn: "Construction & Civil Works", labelHi: "निर्माण एवं सिविल कार्य" },
+  { value: "IT & Software Services", labelEn: "IT & Software Services", labelHi: "आईटी एवं सॉफ्टवेयर सेवाएँ" },
+  { value: "Manufacturing & Engineering", labelEn: "Manufacturing & Engineering", labelHi: "निर्माण एवं इंजीनियरिंग" },
+  { value: "Railway Parts & Components", labelEn: "Railway Parts & Components", labelHi: "रेलवे पार्ट्स एवं घटक" },
+  { value: "Healthcare & Medical Supplies", labelEn: "Healthcare & Medical Supplies", labelHi: "हेल्थकेयर व मेडिकल सप्लाई" },
+  { value: "Food & FMCG", labelEn: "Food & FMCG", labelHi: "भोजन एवं एफएमसीजी" },
+  { value: "Electrical & Electronics", labelEn: "Electrical & Electronics", labelHi: "इलेक्ट्रिकल एवं इलेक्ट्रॉनिक्स" },
+  { value: "Textiles & Garments", labelEn: "Textiles & Garments", labelHi: "टेक्सटाइल्स तथा वस्त्र" },
+  { value: "Other", labelEn: "Other", labelHi: "अन्य" },
+];
+
 const turnovers = [
   { value: "Under 50 Lakhs", labelEn: "Under ₹50 Lakhs", labelHi: "₹50 लाख से कम" },
   { value: "50 Lakhs - 2 Crores", labelEn: "₹50 Lakhs - ₹2 Crores", labelHi: "₹50 लाख - ₹2 करोड़" },
@@ -100,6 +113,7 @@ export default function ProfileSetup() {
       email: '',
       companyName: '',
       businessType: '',
+      industryType: '',
       experience: '',
       turnover: '',
       licenses: '',
@@ -125,20 +139,20 @@ export default function ProfileSetup() {
     try {
       setApiMessage(null);
       setApiError(null);
-      
+
       const res = await fetch(`http://localhost:3000/api/users/profile/${encodeURIComponent(email)}`);
       const result = await res.json();
-      
+
       if (res.ok && result.success && result.data) {
         const user = result.data;
         // Prefill form fields
         setValue('companyName', user.companyName);
         setValue('businessType', user.businessType);
         setValue('experience', user.experience);
-        setValue('turnover', user.turnover);
+        setValue('industryType', user.industryType || '');
         setValue('licenses', user.licenses || '');
         setValue('preferredLanguage', user.preferredLanguage || 'english');
-        
+
         setLang(user.preferredLanguage || 'english');
         setApiMessage(t.existingUserFound);
       }
@@ -186,13 +200,13 @@ export default function ProfileSetup() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center p-4 py-12 relative overflow-hidden font-sans">
-      
+
       {/* Background patterns */}
       <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none"></div>
 
       <div className="w-full max-w-2xl bg-slate-800/80 backdrop-blur-md border border-slate-700/60 rounded-2xl shadow-2xl p-6 sm:p-10 transition-all duration-300">
-        
+
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-700/50 pb-6 mb-8">
           <div>
@@ -243,7 +257,7 @@ export default function ProfileSetup() {
 
         {/* Profile Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          
+
           {/* Email Address */}
           <div>
             <label className="block text-slate-300 text-sm font-semibold mb-2 flex items-center gap-2">
@@ -294,6 +308,26 @@ export default function ProfileSetup() {
             )}
           </div>
 
+
+          {/* Years of Experience */}
+          <div>
+            <label className="block text-slate-300 text-sm font-semibold mb-2 flex items-center gap-2">
+              <Award className="w-4 h-4 text-indigo-400" />
+              {t.experienceLabel} <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              placeholder={t.experiencePlaceholder}
+              {...register("experience", { required: t.validationExperience })}
+              className={`w-full bg-slate-900 border ${errors.experience ? 'border-red-500/80 focus:ring-red-500/20' : 'border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500'} rounded-xl py-3 px-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-4 transition-all duration-200`}
+            />
+            {errors.experience && (
+              <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5" /> {errors.experience.message}
+              </p>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Business Type */}
             <div>
@@ -320,22 +354,25 @@ export default function ProfileSetup() {
                 </p>
               )}
             </div>
-
-            {/* Experience */}
             <div>
               <label className="block text-slate-300 text-sm font-semibold mb-2 flex items-center gap-2">
-                <Award className="w-4 h-4 text-indigo-400" />
-                {t.experienceLabel} <span className="text-red-500">*</span>
+                <Briefcase className="w-4 h-4 text-indigo-400" />
+                Industry / Type of Work <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                placeholder={t.experiencePlaceholder}
-                {...register("experience", { required: t.validationExperience })}
-                className={`w-full bg-slate-900 border ${errors.experience ? 'border-red-500/80 focus:ring-red-500/20' : 'border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500'} rounded-xl py-3 px-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-4 transition-all duration-200`}
-              />
-              {errors.experience && (
+              <select
+                {...register("industryType", { required: "Industry type is required" })}
+                className={`w-full bg-slate-900 border ${errors.industryType ? 'border-red-500/80 focus:ring-red-500/20' : 'border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500'} rounded-xl py-3 px-4 text-slate-100 focus:outline-none focus:ring-4 transition-all duration-200`}
+              >
+                <option value="" disabled className="text-slate-500">Select Industry Type</option>
+                {industryTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {lang === 'english' ? type.labelEn : type.labelHi}
+                  </option>
+                ))}
+              </select>
+              {errors.industryType && (
                 <p className="text-red-400 text-xs mt-1.5 flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5" /> {errors.experience.message}
+                  <AlertCircle className="w-3.5 h-3.5" /> {errors.industryType.message}
                 </p>
               )}
             </div>
@@ -397,7 +434,7 @@ export default function ProfileSetup() {
               className="w-full bg-slate-900 border border-slate-700 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl py-3 px-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-4 transition-all duration-200 resize-none"
             />
           </div>
-          
+
 
           {/* Submit Button */}
           <button
@@ -423,3 +460,4 @@ export default function ProfileSetup() {
     </div>
   );
 }
+
