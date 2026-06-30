@@ -63,7 +63,14 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
     const tenderText = await extractTextFromPDF(req.file.buffer);
     const today = new Date().toISOString().split('T')[0];
 
-    const prompt = `You are an AI tender advisor. Based on the following company profile and tender document, provide a concise analysis in JSON format with the keys:
+    const prompt = `You are an AI tender advisor.
+IMPORTANT: Respond in ${user.preferredLanguage === 'hindi' ? 'Hindi (Devanagari script)' : 'English'}. 
+All text values in the JSON (summary, eligibilityGap 
+items, requiredDocuments items, reverseTimeline task 
+names) must be written in this language. Keep JSON 
+keys in English, only translate the VALUES.
+
+Based on the following company profile and tender document, provide a concise analysis in JSON format with the keys:
 {
   "summary": string,
   "fitScore": number,
