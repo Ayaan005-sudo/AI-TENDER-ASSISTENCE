@@ -45,6 +45,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const userRoutes = require('./routes/userRoutes');
 const tenderRoutes = require('./routes/tenderRoutes');
+const tenderAdvisorRoutes = require('./routes/tenderAdvisor');
 const { startReminderScheduler } = require('./utils/reminderScheduler');
 const app = express();
 
@@ -52,6 +53,7 @@ app.use(express.json());
 app.use(cors());
 app.use('/api/users', userRoutes);
 app.use('/api/tenders', tenderRoutes);
+app.use('/api/tender', tenderAdvisorRoutes);
 
 const port = process.env.PORT || 3000;
 
