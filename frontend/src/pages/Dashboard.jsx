@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Mail, Briefcase, Award, TrendingUp, ShieldCheck, Languages, LogOut, FileText, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
+import { Building2, Mail, Briefcase, Award, TrendingUp, ShieldCheck, Languages, LogOut, FileText, CheckCircle2, ChevronRight, Loader2, Trash2 } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -13,25 +13,25 @@ export default function Dashboard() {
   const email = localStorage.getItem('userEmail');
 
   useEffect(() => {
-  if (!email) { return; }
-  const fetchTenders = async () => {
-    try {
-      const res = await fetch(`http://localhost:3000/api/tenders/user/${encodeURIComponent(email)}`);
-      const result = await res.json();
-      if (!res.ok) {
-        throw new Error(result.message || 'Failed to load tenders');
+    if (!email) { return; }
+    const fetchTenders = async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/tenders/user/${encodeURIComponent(email)}`);
+        const result = await res.json();
+        if (!res.ok) {
+          throw new Error(result.message || 'Failed to load tenders');
+        }
+        setTenders(result.data || []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setTendersLoading(false);
       }
-      setTenders(result.data || []);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setTendersLoading(false);
-    }
-  };
-  fetchTenders();
-}, [email]);
+    };
+    fetchTenders();
+  }, [email]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!email) {
       // If no profile setup has occurred, redirect to profile setup
       navigate('/');
@@ -59,6 +59,24 @@ useEffect(() => {
     fetchProfile();
   }, [email, navigate]);
 
+  // Delete tender handler
+  const handleDeleteTender = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this tender?')) return;
+    try {
+      const res = await fetch(`http://localhost:3000/api/tenders/${id}`, {
+        method: 'DELETE',
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || 'Failed to delete tender');
+      }
+      setTenders((prev) => prev.filter((t) => t._id !== id));
+      window.alert('Tender deleted successfully');
+    } catch (err) {
+      console.error(err);
+      window.alert('Error deleting tender');
+    }
+  };
   const handleLogout = () => {
     localStorage.removeItem('userEmail');
     navigate('/');
@@ -100,10 +118,10 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 font-sans relative overflow-hidden pb-12">
-      
+
       {/* Background radial glow */}
       <div className="absolute top-[-30%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-600/5 blur-[150px] pointer-events-none"></div>
-      
+
       {/* Navbar */}
       <nav className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-10 px-4 sm:px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -115,7 +133,7 @@ useEffect(() => {
             <span className="text-[10px] ml-2 px-1.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-medium">India SME</span>
           </div>
         </div>
-        
+
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 text-sm text-slate-400 hover:text-red-400 px-3.5 py-2 rounded-xl hover:bg-slate-800/50 transition-all border border-transparent hover:border-slate-800"
@@ -127,14 +145,14 @@ useEffect(() => {
 
       {/* Main Layout */}
       <main className="max-w-6xl mx-auto px-4 sm:px-8 mt-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
+
         {/* Left Side: Profile Card */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-slate-800/60 border border-slate-700/50 rounded-2xl p-6 shadow-xl relative">
             <div className="absolute top-4 right-4 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs px-2.5 py-1 rounded-full font-semibold capitalize">
               {profile.preferredLanguage}
             </div>
-            
+
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2.5">
               <Building2 className="w-5 h-5 text-indigo-400" />
               Company Details
@@ -234,10 +252,17 @@ useEffect(() => {
             ) : (
               <div className="grid gap-4">
                 {tenders.map((t, idx) => (
-                  <div key={idx} className="border border-slate-600 rounded-lg p-4 bg-slate-900 cursor-pointer hover:bg-slate-800" onClick={() => navigate(`/tender/${t._id}`)}>
+                  <div key={idx} className="relative border border-slate-600 rounded-lg p-4 bg-slate-900 cursor-pointer hover:bg-slate-800" onClick={() => navigate(`/tender/${t._id}`)}>
                     <h4 className="text-lg font-semibold text-white">{t.tenderName}</h4>
                     <p className="text-sm text-gray-300">Fit Score: {t.fitScore ?? '-'}</p>
                     <p className="text-sm text-gray-300">Deadline: {t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</p>
+                    <button
+                      className="absolute top-2 right-2 text-red-400 hover:text-red-300"
+                      onClick={(e) => { e.stopPropagation(); handleDeleteTender(t._id); }}
+                      title="Delete tender"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -249,3 +274,4 @@ useEffect(() => {
     </div>
   );
 }
+
