@@ -77,12 +77,26 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
     const prompt = `You are an AI tender advisor. Based on the following company profile and tender document, provide a concise analysis in JSON format with the keys:
     {
       "summary": string, // short summary of the tender
-      "fitScore": number, // 0‑100 indicating how well the tender matches the company
+      "fitScore": number, // 0-100 indicating how well the tender matches the company
       "eligibilityGap": [string], // list of missing eligibility items
       "requiredDocuments": [string], // documents that need to be submitted
       "reverseTimeline": [{"task": string, "date": string}], // suggested reverse‑chronological timeline
       "deadline": string // ISO date string of the final submission deadline
     }
+
+    /* Instructions for reverseTimeline:
+    1. For each document in requiredDocuments, estimate typical preparation days in India (e.g., GST certificate: already exists, MSME registration: few days, Bank Guarantee/EMD: 5-7 days, Net Worth Certificate from CA: 3-5 days).
+    2. Include other important milestones mentioned in the tender text, such as site visit (if required), pre-bid meeting date, document download date.
+    3. Work backward from the deadline to calculate suggested completion dates for each item.
+    4. Return reverseTimeline as an array sorted by date (earliest first) in the format:
+    [
+      { "task": "Arrange Bank Guarantee/EMD", "date": "YYYY-MM-DD" },
+      { "task": "Obtain Net Worth Certificate", "date": "YYYY-MM-DD" },
+      { "task": "Complete Affidavit", "date": "YYYY-MM-DD" },
+      { "task": "Attend Pre-bid Meeting", "date": "YYYY-MM-DD" },
+      { "task": "Final Submission", "date": "deadline date" }
+    ]
+    */
     
     Company Profile:
     - Email: ${user.email}
@@ -94,7 +108,7 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
     - Preferred Language: ${user.preferredLanguage}
     
     Tender Document (full text extracted from PDF):
-    ${tenderText.slice(0, 4000)}
+    ${tenderText.slice(0, 8000)}
     
     Respond only with the JSON object described above.`;
 
