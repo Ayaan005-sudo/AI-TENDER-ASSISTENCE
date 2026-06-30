@@ -70,7 +70,7 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
   "eligibilityGap": [string],
   "requiredDocuments": [string],
   "reverseTimeline": [{"task": string, "date": string}],
-  "deadline": string,
+ "deadline": string, // MUST be in YYYY-MM-DD format only
   "isExpired": boolean,
   "isIndustryMismatch": boolean
 }
@@ -141,7 +141,7 @@ router.post('/save', async (req, res) => {
         task: item.task,
         date: item.date ? new Date(item.date) : undefined,
       })),
-      deadline: analysis.deadline ? new Date(analysis.deadline) : undefined,
+      deadline: analysis.deadline && !isNaN(new Date(analysis.deadline)) ? new Date(analysis.deadline) : undefined,
       isExpired: analysis.isExpired || false,
       companySnapshot: userProfile ? {
         companyName: userProfile.companyName,
@@ -152,9 +152,14 @@ router.post('/save', async (req, res) => {
       } : undefined,
     });
     await tender.save();
-    // Send confirmation email (non-blocking)
+    // Determine custom status message based on analysis flags
+    const statusMessage = analysis.isExpired
+      ? 'This tender has been saved to your dashboard. However, the deadline has already passed, so no action items are required.'
+      : analysis.isIndustryMismatch
+        ? 'This tender has been saved to your dashboard. However, this tender does not match your business industry, so no action items are required.'
+        : null;
     try {
-      await sendConfirmationEmail(email, tenderName, tender.reverseTimeline, tender.deadline);
+      await sendConfirmationEmail(email, tenderName, tender.reverseTimeline, tender.deadline, statusMessage);
     } catch (emailErr) {
       console.warn('Failed to send confirmation email:', emailErr);
     }

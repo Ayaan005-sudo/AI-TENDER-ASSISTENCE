@@ -16,8 +16,9 @@ const transporter = nodemailer.createTransport({
  * @param {string} tenderName - Name of the saved tender.
  * @param {Array} reverseTimeline - Array of tasks with dates (objects with task and date).
  * @param {Date|string} deadline - Tender submission deadline.
+ * @param {string} [statusMessage] - Optional custom status message to display instead of timeline.
  */
-async function sendConfirmationEmail(toEmail, tenderName, reverseTimeline, deadline) {
+async function sendConfirmationEmail(toEmail, tenderName, reverseTimeline, deadline, statusMessage) {
   const deadlineStr = typeof deadline === 'string' ? deadline : deadline?.toISOString().split('T')[0] || '';
 
   // Build HTML list of timeline tasks
@@ -28,11 +29,14 @@ async function sendConfirmationEmail(toEmail, tenderName, reverseTimeline, deadl
     }).join('') + '</ul>'
     : '<p>No timeline tasks available.</p>';
 
+  // Choose message content: custom statusMessage takes precedence
+  const messageContent = statusMessage ? `<p>${statusMessage}</p>` : timelineHtml;
+
   const htmlBody = `
     <h2>🗂️ Tender Saved: ${tenderName}</h2>
     <p><strong>Deadline:</strong> ${deadlineStr}</p>
-    <h3>Reverse Timeline</h3>
-    ${timelineHtml}
+    <h3>Details</h3>
+    ${messageContent}
     <p>Best of luck with your submission!</p>
   `;
 
@@ -48,4 +52,5 @@ async function sendConfirmationEmail(toEmail, tenderName, reverseTimeline, deadl
 }
 
 module.exports = { sendConfirmationEmail };
+
 
