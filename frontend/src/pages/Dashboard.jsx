@@ -1,16 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Mail, Briefcase, Award, TrendingUp, ShieldCheck, Languages, LogOut, FileText, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Building2, Mail, Briefcase, Award, TrendingUp, ShieldCheck, Languages, LogOut, FileText, CheckCircle2, ChevronRight, Loader2 } from 'lucide-react';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [tenders, setTenders] = useState([]);
+  const [tendersLoading, setTendersLoading] = useState(true);
 
   const email = localStorage.getItem('userEmail');
 
   useEffect(() => {
+  if (!email) { return; }
+  const fetchTenders = async () => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/tenders/user/${encodeURIComponent(email)}`);
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || 'Failed to load tenders');
+      }
+      setTenders(result.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setTendersLoading(false);
+    }
+  };
+  fetchTenders();
+}, [email]);
+
+useEffect(() => {
     if (!email) {
       // If no profile setup has occurred, redirect to profile setup
       navigate('/');
@@ -202,32 +223,25 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Tenders Matching Section Placeholder */}
+          {/* Saved Tenders */}
           <div className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-lg font-bold text-white">Recommended Tenders</h3>
+            {tendersLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="animate-spin w-6 h-6 text-indigo-400" />
               </div>
-              <span className="text-xs bg-slate-800 px-2.5 py-1 rounded-full text-slate-400 border border-slate-700">0 Matches</span>
-            </div>
-
-            <div className="text-center py-12 px-4 border border-dashed border-slate-700/50 rounded-xl">
-              <div className="w-12 h-12 bg-slate-800 text-slate-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-6 h-6" />
+            ) : tenders.length === 0 ? (
+              <p className="text-center text-slate-400">No tenders saved yet</p>
+            ) : (
+              <div className="grid gap-4">
+                {tenders.map((t, idx) => (
+                  <div key={idx} className="border border-slate-600 rounded-lg p-4 bg-slate-900 cursor-pointer hover:bg-slate-800" onClick={() => navigate(`/tender/${t._id}`)}>
+                    <h4 className="text-lg font-semibold text-white">{t.tenderName}</h4>
+                    <p className="text-sm text-gray-300">Fit Score: {t.fitScore ?? '-'}</p>
+                    <p className="text-sm text-gray-300">Deadline: {t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</p>
+                  </div>
+                ))}
               </div>
-              <h4 className="text-base font-bold text-slate-300 mb-2">No Matching Tenders Yet</h4>
-              <p className="text-slate-400 text-xs max-w-md mx-auto leading-relaxed">
-                We are calibrating our AI matching model for your profile. In the upcoming updates, we will showcase matching tenders from GeM (Government e-Marketplace), CPP Portal, and state departments.
-              </p>
-              
-              <div className="mt-8 flex justify-center">
-                <div className="inline-flex items-center gap-1.5 text-xs text-indigo-400 font-semibold bg-indigo-500/5 border border-indigo-500/10 px-3.5 py-1.5 rounded-full">
-                  <span>Upcoming: Realtime matching alerts</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 

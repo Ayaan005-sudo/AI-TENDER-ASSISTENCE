@@ -124,7 +124,7 @@ const TenderUpload = () => {
     for (let [key, value] of formData.entries()) {
       console.log("FormData", key, value);
     }
-    
+
 
     try {
       const response = await fetch("http://localhost:3000/api/tenders/analyze", {
@@ -141,6 +141,30 @@ const TenderUpload = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Save tender to dashboard
+  const handleAddToDashboard = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/tenders/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          tenderName,
+          analysis: result,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to save tender");
+      }
+      setSavedMessage("Tender saved to dashboard!");
+      setTimeout(() => navigate("/dashboard"), 1500);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
     }
   };
 
@@ -247,9 +271,8 @@ const TenderUpload = () => {
         </div>
         {/* Drop zone */}
         <div
-          className={`flex flex-col items-center justify-center border-2 border-dashed rounded-md p-8 mb-4 transition-colors ${
-            dragActive ? "border-indigo-400 bg-slate-700" : "border-slate-600"
-          }`}
+          className={`flex flex-col items-center justify-center border-2 border-dashed rounded-md p-8 mb-4 transition-colors ${dragActive ? "border-indigo-400 bg-slate-700" : "border-slate-600"
+            }`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
