@@ -47,7 +47,7 @@ export default function TenderDetails() {
 
   if (!tender) return null;
 
-  const { tenderName, summary, fitScore, eligibilityGap = [], requiredDocuments = [], reverseTimeline = [], deadline } = tender;
+  const { tenderName, summary, fitScore, eligibilityGap = [], requiredDocuments = [], reverseTimeline = [], deadline, companySnapshot } = tender;
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-4 pt-12">
@@ -64,6 +64,19 @@ export default function TenderDetails() {
           <h3 className="text-xl font-semibold mb-2">Fit Score</h3>
           <p className="text-green-400 text-3xl font-bold">{fitScore ?? '-'} </p>
         </section>
+        {/* Company Snapshot */}
+        {companySnapshot && (
+          <section className="mb-6 p-4 bg-slate-700 rounded-lg">
+            <h3 className="text-xl font-semibold mb-2 text-indigo-300">Company Snapshot (at time of analysis)</h3>
+            <ul className="list-disc list-inside text-gray-300 space-y-1">
+              {companySnapshot.companyName && <li><strong>Company Name:</strong> {companySnapshot.companyName}</li>}
+              {companySnapshot.businessType && <li><strong>Business Type:</strong> {companySnapshot.businessType}</li>}
+              {companySnapshot.industryType && <li><strong>Industry / Sector:</strong> {companySnapshot.industryType}</li>}
+              {companySnapshot.experience && <li><strong>Experience:</strong> {companySnapshot.experience}</li>}
+              {companySnapshot.turnover && <li><strong>Turnover:</strong> {companySnapshot.turnover}</li>}
+            </ul>
+          </section>
+        )}
         {eligibilityGap.length > 0 && (
           <section className="mb-6">
             <h3 className="text-xl font-semibold mb-2">Eligibility Gap</h3>

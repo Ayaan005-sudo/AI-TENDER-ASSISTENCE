@@ -15,6 +15,7 @@ async function extractTextFromPDF(buffer) {
 
 const Tender = require('../models/Tender');
 const User = require('../models/User');
+const { sendConfirmationEmail } = require('../utils/emailService');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -124,6 +125,11 @@ router.post('/save', async (req, res) => {
     if (!email || !tenderName || !analysis) {
       return res.status(400).json({ success: false, message: 'email, tenderName and analysis are required' });
     }
+    // Fetch user profile to include snapshot
+    const userProfile = await User.findOne({ email: email.toLowerCase() });
+    if (!userProfile) {
+      console.warn('User profile not found for email:', email);
+    }
     const tender = new Tender({
       userEmail: email.toLowerCase(),
       tenderName,
@@ -137,8 +143,21 @@ router.post('/save', async (req, res) => {
       })),
       deadline: analysis.deadline ? new Date(analysis.deadline) : undefined,
       isExpired: analysis.isExpired || false,
+      companySnapshot: userProfile ? {
+        companyName: userProfile.companyName,
+        businessType: userProfile.businessType,
+        industryType: userProfile.industryType,
+        experience: userProfile.experience,
+        turnover: userProfile.turnover,
+      } : undefined,
     });
     await tender.save();
+    // Send confirmation email (non-blocking)
+    try {
+      await sendConfirmationEmail(email, tenderName, tender.reverseTimeline, tender.deadline);
+    } catch (emailErr) {
+      console.warn('Failed to send confirmation email:', emailErr);
+    }
     return res.status(201).json({ success: true, data: tender });
   } catch (error) {
     console.error('Error saving tender:', error);
@@ -174,4 +193,5 @@ router.get('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
 
