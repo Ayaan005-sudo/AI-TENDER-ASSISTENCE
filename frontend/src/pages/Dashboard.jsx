@@ -22,6 +22,11 @@ const translations = {
     logout: "Logout",
     profileComplete: "Profile Setup Complete!",
     profileCompleteDesc: "Thank you for completing the registration. Your business data has been saved, enabling precise matching with state and central government portals.",
+    compareBtn: "🤖 Compare with AI",
+    comparisonTitle: "🤖 AI Tender Comparison",
+    close: "Close",
+    errorComparison: "Unable to run comparison right now.",
+    comparingTenders: "Comparing selected tenders, please wait...",
   },
   hindi: {
     companyDetails: "कंपनी विवरण",
@@ -41,7 +46,57 @@ const translations = {
     logout: "लॉगआउट",
     profileComplete: "प्रोफ़ाइल सेटअप पूरा हुआ!",
     profileCompleteDesc: "पंजीकरण पूरा करने के लिए धन्यवाद। आपका व्यावसायिक डेटा सहेज लिया गया है, जिससे राज्य और केंद्र सरकार के पोर्टलों के साथ सटीक मिलान सक्षम हो गया है।",
+    compareBtn: "🤖 एआई के साथ तुलना करें",
+    comparisonTitle: "🤖 एआई टेंडर तुलना",
+    close: "बंद करें",
+    errorComparison: "अभी तुलना चलाने में असमर्थ।",
+    comparingTenders: "चयनित टेंडरों की तुलना की जा रही है, कृपया प्रतीक्षा करें...",
   }
+};
+
+// Format raw markdown response to styled plain text JSX elements
+const renderFormattedContent = (text) => {
+  if (!text) return null;
+  const lines = text.split('\n');
+  return lines.map((line, idx) => {
+    // Process headings
+    if (line.startsWith('###') || line.startsWith('####')) {
+      const cleanText = line.replace(/^#+\s*/, '');
+      return <h4 key={idx} className="text-md font-bold text-indigo-300 mt-4 mb-2">{cleanText}</h4>;
+    }
+    if (line.startsWith('##')) {
+      const cleanText = line.replace(/^#+\s*/, '');
+      return <h3 key={idx} className="text-lg font-bold text-indigo-400 mt-5 mb-2 border-b border-slate-700 pb-1">{cleanText}</h3>;
+    }
+    if (line.startsWith('#')) {
+      const cleanText = line.replace(/^#+\s*/, '');
+      return <h2 key={idx} className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400 mt-6 mb-3">{cleanText}</h2>;
+    }
+    
+    // Process list items
+    if (line.trim().startsWith('-') || line.trim().startsWith('*') || line.trim().startsWith('•')) {
+      const cleanText = line.replace(/^[\s-*•]+\s*/, '');
+      const parts = cleanText.split(/\*\*([^*]+)\*\*/g);
+      return (
+        <li key={idx} className="list-disc list-inside text-slate-300 text-sm ml-4 mb-1.5 leading-relaxed">
+          {parts.map((part, pIdx) => pIdx % 2 === 1 ? <strong key={pIdx} className="text-white font-semibold">{part}</strong> : part)}
+        </li>
+      );
+    }
+    
+    // Empty line
+    if (!line.trim()) {
+      return <div key={idx} className="h-2" />;
+    }
+    
+    // Normal paragraphs
+    const parts = line.split(/\*\*([^*]+)\*\*/g);
+    return (
+      <p key={idx} className="text-slate-300 text-sm leading-relaxed mb-2">
+        {parts.map((part, pIdx) => pIdx % 2 === 1 ? <strong key={pIdx} className="text-white font-semibold">{part}</strong> : part)}
+      </p>
+    );
+  });
 };
 
 export default function Dashboard() {
@@ -51,6 +106,56 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [tenders, setTenders] = useState([]);
   const [tendersLoading, setTendersLoading] = useState(true);
+
+  // AI Tender Comparison States
+  const [selectedTenderIds, setSelectedTenderIds] = useState([]);
+  const [comparisonResult, setComparisonResult] = useState(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [comparisonError, setComparisonError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleToggleTenderSelection = (id, event) => {
+    event.stopPropagation();
+    setSelectedTenderIds((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((item) => item !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+
+  const handleCompareTenders = async () => {
+    if (selectedTenderIds.length < 2) return;
+    setComparisonLoading(true);
+    setComparisonError(null);
+    setComparisonResult(null);
+    setIsModalOpen(true);
+
+    try {
+      const res = await fetch("http://localhost:3000/api/tender/compare", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tenderIds: selectedTenderIds
+        }),
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        setComparisonResult(result.data);
+      } else {
+        setComparisonError(result.message || trans.errorComparison || "Unable to run comparison right now.");
+      }
+    } catch (err) {
+      console.error("Comparison fetch error:", err);
+      setComparisonError(trans.errorComparison || "Unable to run comparison right now.");
+    } finally {
+      setComparisonLoading(false);
+    }
+  };
 
   const email = localStorage.getItem('userEmail');
 
@@ -291,7 +396,17 @@ export default function Dashboard() {
 
           {/* Saved Tenders */}
           <div className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl">
-            <h3 className="text-xl font-bold text-white mb-6">{trans.mySavedTenders}</h3>
+            <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+              <h3 className="text-xl font-bold text-white">{trans.mySavedTenders}</h3>
+              {selectedTenderIds.length >= 2 && (
+                <button
+                  onClick={handleCompareTenders}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all duration-200 hover:scale-[1.02] flex items-center gap-1.5 shadow-lg shadow-indigo-600/25 cursor-pointer"
+                >
+                  {trans.compareBtn}
+                </button>
+              )}
+            </div>
             {tendersLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="animate-spin w-6 h-6 text-indigo-400" />
@@ -301,10 +416,29 @@ export default function Dashboard() {
             ) : (
               <div className="grid gap-4">
                 {tenders.map((t, idx) => (
-                  <div key={idx} className="relative border border-slate-600 rounded-lg p-4 bg-slate-900 cursor-pointer hover:bg-slate-800" onClick={() => navigate(`/tender/${t._id}`)}>
-                    <h4 className="text-lg font-semibold text-white">{t.tenderName}</h4>
-                    <p className="text-sm text-gray-300">{trans.fitScore}: {t.fitScore ?? '-'}</p>
-                    <p className="text-sm text-gray-300">{trans.deadline}: {t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</p>
+                  <div
+                    key={idx}
+                    className={`relative border rounded-lg p-4 bg-slate-900 cursor-pointer hover:bg-slate-800 flex items-start gap-4 transition-all duration-200 ${
+                      selectedTenderIds.includes(t._id) ? 'border-indigo-500 shadow-md shadow-indigo-500/10' : 'border-slate-600'
+                    }`}
+                    onClick={() => navigate(`/tender/${t._id}`)}
+                  >
+                    {/* Checkbox overlay/element */}
+                    <div className="flex items-center h-5 mt-1" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedTenderIds.includes(t._id)}
+                        onChange={(e) => handleToggleTenderSelection(t._id, e)}
+                        className="w-5 h-5 rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="flex-1">
+                      <h4 className="text-lg font-semibold text-white">{t.tenderName}</h4>
+                      <p className="text-sm text-gray-300">{trans.fitScore}: {t.fitScore ?? '-'}</p>
+                      <p className="text-sm text-gray-300">{trans.deadline}: {t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</p>
+                    </div>
+
                     <button
                       className="absolute top-2 right-2 text-red-400 hover:text-red-300"
                       onClick={(e) => { e.stopPropagation(); handleDeleteTender(t._id); }}
@@ -320,6 +454,55 @@ export default function Dashboard() {
         </div>
 
       </main>
+
+      {/* AI Comparison Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+          <div className="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl relative">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => { setIsModalOpen(false); setSelectedTenderIds([]); }}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition-all font-semibold text-lg cursor-pointer"
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
+            
+            <div className="p-6 border-b border-slate-700/50">
+              <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">
+                {trans.comparisonTitle}
+              </h3>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              {comparisonLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 space-y-4">
+                  <Loader2 className="animate-spin w-10 h-10 text-indigo-500" />
+                  <p className="text-slate-400 text-sm">{trans.comparingTenders}</p>
+                </div>
+              ) : comparisonError ? (
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl p-4 text-sm text-center">
+                  {comparisonError}
+                </div>
+              ) : (
+                <div className="space-y-4 pr-1">
+                  {renderFormattedContent(comparisonResult)}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-6 border-t border-slate-700/50 flex justify-end">
+              <button
+                onClick={() => { setIsModalOpen(false); setSelectedTenderIds([]); }}
+                className="bg-slate-900 hover:bg-slate-700 border border-slate-700 text-slate-300 font-semibold py-2.5 px-5 rounded-xl text-sm transition-all cursor-pointer"
+              >
+                {trans.close}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
