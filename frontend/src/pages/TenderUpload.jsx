@@ -58,6 +58,7 @@ const TenderUpload = () => {
       documents: "Required Documents",
       timeline: "Reverse Timeline",
       back: "Back to Dashboard",
+      addToDashboard: "Add to Dashboard",
     };
     const hi = {
       title: "टेंडर विश्लेषण",
@@ -72,6 +73,7 @@ const TenderUpload = () => {
       documents: "आवश्यक दस्तावेज़",
       timeline: "विपरीत समय‑रेखा",
       back: "डैशबोर्ड पर वापस",
+      addToDashboard: "डैशबोर्ड में जोड़ें",
     };
     return preferredLanguage === "hindi" ? hi[key] : en[key];
   };
@@ -253,7 +255,7 @@ const TenderUpload = () => {
           disabled={!result || loading}
           className="mt-4 ml-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded"
         >
-          Add to Dashboard
+          {t("addToDashboard")}
         </button>
         {savedMessage && <p className="mt-2 text-green-400">{savedMessage}</p>}
       </div>

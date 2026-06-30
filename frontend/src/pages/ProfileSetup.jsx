@@ -154,6 +154,7 @@ export default function ProfileSetup() {
         setValue('preferredLanguage', user.preferredLanguage || 'english');
 
         setLang(user.preferredLanguage || 'english');
+        localStorage.setItem('preferredLanguage', user.preferredLanguage || 'english');
         setApiMessage(t.existingUserFound);
       }
     } catch (err) {
@@ -183,6 +184,7 @@ export default function ProfileSetup() {
 
       // Store email in localStorage as requested
       localStorage.setItem('userEmail', data.email.toLowerCase());
+      localStorage.setItem('preferredLanguage', data.preferredLanguage || 'english');
 
       // Show success toast and redirect
       setApiMessage(t.toastSuccess);

@@ -2,6 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Building2, Mail, Briefcase, Award, TrendingUp, ShieldCheck, Languages, LogOut, FileText, CheckCircle2, ChevronRight, Loader2, Trash2 } from 'lucide-react';
 
+// Simple translation object for English and Hindi labels
+const translations = {
+  english: {
+    companyDetails: "Company Details",
+    companyName: "Company / Business Name",
+    emailAddress: "Email Address",
+    businessType: "Business Type",
+    yearsOfExperience: "Years of Experience",
+    annualTurnover: "Annual Turnover",
+    licensesCertifications: "Licenses & Certifications",
+    noLicenses: "No licenses listed",
+    updateProfileDetails: "Update Profile Details",
+    uploadTender: "Upload Tender",
+    mySavedTenders: "My Saved Tenders",
+    noTendersSaved: "No tenders saved yet",
+    fitScore: "Fit Score",
+    deadline: "Deadline",
+    logout: "Logout",
+    profileComplete: "Profile Setup Complete!",
+    profileCompleteDesc: "Thank you for completing the registration. Your business data has been saved, enabling precise matching with state and central government portals.",
+  },
+  hindi: {
+    companyDetails: "कंपनी विवरण",
+    companyName: "कंपनी / व्यवसाय का नाम",
+    emailAddress: "ईमेल पता",
+    businessType: "व्यवसाय का प्रकार",
+    yearsOfExperience: "अनुभव के वर्ष",
+    annualTurnover: "वार्षिक टर्नओवर",
+    licensesCertifications: "लाइसेंस और प्रमाणपत्र",
+    noLicenses: "कोई लाइसेंस सूचीबद्ध नहीं है",
+    updateProfileDetails: "प्रोफ़ाइल विवरण अपडेट करें",
+    uploadTender: "टेंडर अपलोड करें",
+    mySavedTenders: "मेरे सहेजे गए टेंडर",
+    noTendersSaved: "अभी तक कोई टेंडर सहेजा नहीं गया है",
+    fitScore: "फिट स्कोर",
+    deadline: "अंतिम तिथि",
+    logout: "लॉगआउट",
+    profileComplete: "प्रोफ़ाइल सेटअप पूरा हुआ!",
+    profileCompleteDesc: "पंजीकरण पूरा करने के लिए धन्यवाद। आपका व्यावसायिक डेटा सहेज लिया गया है, जिससे राज्य और केंद्र सरकार के पोर्टलों के साथ सटीक मिलान सक्षम हो गया है।",
+  }
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
@@ -48,6 +90,7 @@ export default function Dashboard() {
         }
 
         setProfile(result.data);
+        localStorage.setItem('preferredLanguage', result.data.preferredLanguage || 'english');
       } catch (err) {
         console.error(err);
         setError(err.message || 'Error fetching company profile.');
@@ -81,6 +124,11 @@ export default function Dashboard() {
     localStorage.removeItem('userEmail');
     navigate('/');
   };
+
+  // Determine user's preferred language from the fetched profile data (profile.preferredLanguage)
+  const preferredLanguage = profile?.preferredLanguage || 'english';
+  const langKey = preferredLanguage.toLowerCase() === 'hindi' ? 'hindi' : 'english';
+  const trans = translations[langKey];
 
   if (loading) {
     return (
@@ -139,7 +187,7 @@ export default function Dashboard() {
           className="flex items-center gap-2 text-sm text-slate-400 hover:text-red-400 px-3.5 py-2 rounded-xl hover:bg-slate-800/50 transition-all border border-transparent hover:border-slate-800"
         >
           <LogOut className="w-4 h-4" />
-          <span className="hidden sm:inline">Logout</span>
+          <span className="hidden sm:inline">{trans.logout}</span>
         </button>
       </nav>
 
@@ -155,19 +203,19 @@ export default function Dashboard() {
 
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2.5">
               <Building2 className="w-5 h-5 text-indigo-400" />
-              Company Details
+              {trans.companyDetails}
             </h2>
 
             <div className="space-y-4">
               {/* Company Name */}
               <div className="border-b border-slate-700/30 pb-3">
-                <span className="text-xs text-slate-400 block mb-1">Company / Business Name</span>
+                <span className="text-xs text-slate-400 block mb-1">{trans.companyName}</span>
                 <span className="text-base font-bold text-slate-200">{profile.companyName}</span>
               </div>
 
               {/* Email */}
               <div className="border-b border-slate-700/30 pb-3">
-                <span className="text-xs text-slate-400 block mb-1">Email Address</span>
+                <span className="text-xs text-slate-400 block mb-1">{trans.emailAddress}</span>
                 <span className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-slate-500" />
                   {profile.email}
@@ -176,7 +224,7 @@ export default function Dashboard() {
 
               {/* Business Type */}
               <div className="border-b border-slate-700/30 pb-3">
-                <span className="text-xs text-slate-400 block mb-1">Business Type</span>
+                <span className="text-xs text-slate-400 block mb-1">{trans.businessType}</span>
                 <span className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
                   <Briefcase className="w-3.5 h-3.5 text-slate-500" />
                   {profile.businessType}
@@ -185,7 +233,7 @@ export default function Dashboard() {
 
               {/* Experience */}
               <div className="border-b border-slate-700/30 pb-3">
-                <span className="text-xs text-slate-400 block mb-1">Years of Experience</span>
+                <span className="text-xs text-slate-400 block mb-1">{trans.yearsOfExperience}</span>
                 <span className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
                   <Award className="w-3.5 h-3.5 text-slate-500" />
                   {profile.experience}
@@ -194,7 +242,7 @@ export default function Dashboard() {
 
               {/* Turnover */}
               <div className="border-b border-slate-700/30 pb-3">
-                <span className="text-xs text-slate-400 block mb-1">Annual Turnover</span>
+                <span className="text-xs text-slate-400 block mb-1">{trans.annualTurnover}</span>
                 <span className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
                   <TrendingUp className="w-3.5 h-3.5 text-slate-500" />
                   {profile.turnover}
@@ -203,10 +251,10 @@ export default function Dashboard() {
 
               {/* Licenses */}
               <div>
-                <span className="text-xs text-slate-400 block mb-1">Licenses & Certifications</span>
+                <span className="text-xs text-slate-400 block mb-1">{trans.licensesCertifications}</span>
                 <span className="text-sm font-medium text-slate-300 flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
-                  {profile.licenses || "No licenses listed"}
+                  {profile.licenses || trans.noLicenses}
                 </span>
               </div>
             </div>
@@ -215,13 +263,13 @@ export default function Dashboard() {
               onClick={() => navigate('/')}
               className="w-full mt-6 bg-slate-900 hover:bg-slate-700 text-indigo-400 font-semibold py-2.5 px-4 rounded-xl border border-slate-700 transition-all text-sm"
             >
-              Update Profile Details
+              {trans.updateProfileDetails}
             </button>
             <button
               onClick={() => navigate('/tender-upload')}
               className="w-full mt-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-2.5 px-4 rounded-xl"
             >
-              Upload Tender
+              {trans.uploadTender}
             </button>
           </div>
         </div>
@@ -234,28 +282,29 @@ export default function Dashboard() {
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-indigo-300">Profile Setup Complete!</h3>
+              <h3 className="text-lg font-bold text-indigo-300">{trans.profileComplete}</h3>
               <p className="text-slate-300 text-sm mt-1 leading-relaxed">
-                Thank you for completing the registration. Your business data has been saved, enabling precise matching with state and central government portals.
+                {trans.profileCompleteDesc}
               </p>
             </div>
           </div>
 
           {/* Saved Tenders */}
           <div className="bg-slate-800/40 border border-slate-700/50 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <h3 className="text-xl font-bold text-white mb-6">{trans.mySavedTenders}</h3>
             {tendersLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="animate-spin w-6 h-6 text-indigo-400" />
               </div>
             ) : tenders.length === 0 ? (
-              <p className="text-center text-slate-400">No tenders saved yet</p>
+              <p className="text-center text-slate-400">{trans.noTendersSaved}</p>
             ) : (
               <div className="grid gap-4">
                 {tenders.map((t, idx) => (
                   <div key={idx} className="relative border border-slate-600 rounded-lg p-4 bg-slate-900 cursor-pointer hover:bg-slate-800" onClick={() => navigate(`/tender/${t._id}`)}>
                     <h4 className="text-lg font-semibold text-white">{t.tenderName}</h4>
-                    <p className="text-sm text-gray-300">Fit Score: {t.fitScore ?? '-'}</p>
-                    <p className="text-sm text-gray-300">Deadline: {t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</p>
+                    <p className="text-sm text-gray-300">{trans.fitScore}: {t.fitScore ?? '-'}</p>
+                    <p className="text-sm text-gray-300">{trans.deadline}: {t.deadline ? new Date(t.deadline).toLocaleDateString() : '-'}</p>
                     <button
                       className="absolute top-2 right-2 text-red-400 hover:text-red-300"
                       onClick={(e) => { e.stopPropagation(); handleDeleteTender(t._id); }}
