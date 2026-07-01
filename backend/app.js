@@ -60,6 +60,11 @@ app.use('/api/tenders', tenderRoutes);
 app.use('/api/tender', tenderAdvisorRoutes);
 app.use('/api/tender', tenderComparisonRoutes);
 
+app.use(cors({
+    origin: process.env.CLIENT_URL,
+
+}));
+
 
 const port = process.env.PORT || 3000;
 
