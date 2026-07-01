@@ -219,7 +219,7 @@ export default function TenderExplore() {
 
       if (!activeIndustry && email) {
         try {
-          const profileRes = await fetch(`http://localhost:3000/api/users/profile/${encodeURIComponent(email)}`);
+          const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/api/users/profile/${encodeURIComponent(email)}`);
           const profileResult = await profileRes.json();
           if (profileRes.ok && profileResult.data?.industryType) {
             activeIndustry = profileResult.data.industryType;
@@ -241,7 +241,7 @@ export default function TenderExplore() {
 
       // Fetch relevant tenders
       try {
-        const res = await fetch(`http://localhost:3000/api/tenders/relevant?industryType=${encodeURIComponent(activeIndustry)}`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenders/relevant?industryType=${encodeURIComponent(activeIndustry)}`, {
           headers: {
             'industryType': activeIndustry
           }

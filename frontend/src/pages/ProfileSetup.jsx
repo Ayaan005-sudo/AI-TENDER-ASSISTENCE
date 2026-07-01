@@ -140,7 +140,7 @@ export default function ProfileSetup() {
       setApiMessage(null);
       setApiError(null);
 
-      const res = await fetch(`http://localhost:3000/api/users/profile/${encodeURIComponent(email)}`);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/profile/${encodeURIComponent(email)}`);
       const result = await res.json();
 
       if (res.ok && result.success && result.data) {
@@ -168,7 +168,7 @@ export default function ProfileSetup() {
     setApiError(null);
 
     try {
-      const res = await fetch('http://localhost:3000/api/users/profile', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/profile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

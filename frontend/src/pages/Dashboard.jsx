@@ -135,7 +135,7 @@ export default function Dashboard() {
     setIsModalOpen(true);
 
     try {
-      const res = await fetch("http://localhost:3000/api/tender/compare", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tender/compare`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -165,7 +165,7 @@ export default function Dashboard() {
     if (!email) { return; }
     const fetchTenders = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/tenders/user/${encodeURIComponent(email)}`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenders/user/${encodeURIComponent(email)}`);
         const result = await res.json();
         if (!res.ok) {
           throw new Error(result.message || 'Failed to load tenders');
@@ -189,7 +189,7 @@ export default function Dashboard() {
 
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/users/profile/${encodeURIComponent(email)}`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/profile/${encodeURIComponent(email)}`);
         const result = await res.json();
 
         if (!res.ok) {
@@ -213,7 +213,7 @@ export default function Dashboard() {
   const handleDeleteTender = async (id) => {
     if (!window.confirm('Are you sure you want to delete this tender?')) return;
     try {
-      const res = await fetch(`http://localhost:3000/api/tenders/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenders/${id}`, {
         method: 'DELETE',
       });
       const result = await res.json();

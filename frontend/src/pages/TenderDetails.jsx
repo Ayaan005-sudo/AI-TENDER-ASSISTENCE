@@ -83,7 +83,7 @@ export default function TenderDetails() {
     setAiGenerating(true);
 
     try {
-      const res = await fetch('http://localhost:3000/api/tender/ai-advisor', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tender/ai-advisor`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export default function TenderDetails() {
   useEffect(() => {
     const fetchTender = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/tenders/${encodeURIComponent(id)}`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tenders/${encodeURIComponent(id)}`);
         const result = await res.json();
         if (!res.ok) {
           throw new Error(result.message || "Failed to load tender");
@@ -137,7 +137,7 @@ export default function TenderDetails() {
         // If preferredLanguage is not set in localStorage, retrieve it from the user's profile
         if (!localStorage.getItem("preferredLanguage") && tenderData?.userEmail) {
           try {
-            const profileRes = await fetch(`http://localhost:3000/api/users/profile/${encodeURIComponent(tenderData.userEmail)}`);
+            const profileRes = await fetch(`${import.meta.env.VITE_API_URL}/api/users/profile/${encodeURIComponent(tenderData.userEmail)}`);
             const profileResult = await profileRes.json();
             if (profileRes.ok && profileResult.data?.preferredLanguage) {
               const userLang = profileResult.data.preferredLanguage;
@@ -257,14 +257,14 @@ export default function TenderDetails() {
 
         {/* AI Tender Advisor Section */}
         <hr className="border-slate-700 my-8" />
-        
+
         <section className="mt-8 space-y-6">
           <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400 flex items-center gap-2">
             {t.advisorTitle}
           </h3>
           <p className="text-slate-300 text-sm">
-            {preferredLanguage.toLowerCase() === 'hindi' 
-              ? 'हमारे एआई टेंडर सलाहकार से अपने व्यवसाय प्रोफाइल और इस टेंडर के आधार पर सलाह प्राप्त करें।' 
+            {preferredLanguage.toLowerCase() === 'hindi'
+              ? 'हमारे एआई टेंडर सलाहकार से अपने व्यवसाय प्रोफाइल और इस टेंडर के आधार पर सलाह प्राप्त करें।'
               : 'Get instant feedback and preparation advice from our AI Tender Consultant based on your business profile.'}
           </p>
 
@@ -318,8 +318,8 @@ export default function TenderDetails() {
           <div className="bg-slate-900/80 border border-slate-700/50 rounded-2xl p-4 min-h-[250px] max-h-[400px] overflow-y-auto space-y-4 flex flex-col">
             {chatMessages.length === 0 ? (
               <div className="h-full flex items-center justify-center text-slate-500 text-sm italic py-16 mx-auto">
-                {preferredLanguage.toLowerCase() === 'hindi' 
-                  ? 'परामर्श शुरू करने के लिए एक त्वरित कार्रवाई बटन दबाएं या नीचे एक प्रश्न पूछें।' 
+                {preferredLanguage.toLowerCase() === 'hindi'
+                  ? 'परामर्श शुरू करने के लिए एक त्वरित कार्रवाई बटन दबाएं या नीचे एक प्रश्न पूछें।'
                   : 'Click a quick action button or ask a custom question below to start the consultation.'}
               </div>
             ) : (
@@ -329,23 +329,22 @@ export default function TenderDetails() {
                   className={`flex flex-col ${msg.sender === 'user' ? 'items-end' : 'items-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-md whitespace-pre-line leading-relaxed ${
-                      msg.sender === 'user'
+                    className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-md whitespace-pre-line leading-relaxed ${msg.sender === 'user'
                         ? 'bg-indigo-600 text-white rounded-tr-none'
                         : 'bg-slate-800 text-slate-100 border border-slate-700/50 rounded-tl-none'
-                    }`}
+                      }`}
                   >
                     {msg.text}
                   </div>
                   <span className="text-[10px] text-slate-500 mt-1 px-1">
-                    {msg.sender === 'user' 
-                      ? (preferredLanguage.toLowerCase() === 'hindi' ? 'आप' : 'You') 
+                    {msg.sender === 'user'
+                      ? (preferredLanguage.toLowerCase() === 'hindi' ? 'आप' : 'You')
                       : (preferredLanguage.toLowerCase() === 'hindi' ? 'एआई सलाहकार' : 'AI Advisor')}
                   </span>
                 </div>
               ))
             )}
-            
+
             {/* Typing indicator */}
             {aiGenerating && (
               <div className="flex flex-col items-start">
@@ -355,7 +354,7 @@ export default function TenderDetails() {
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 

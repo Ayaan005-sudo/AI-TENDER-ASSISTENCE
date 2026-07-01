@@ -129,7 +129,7 @@ const TenderUpload = () => {
 
 
     try {
-      const response = await fetch("http://localhost:3000/api/tenders/analyze", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tenders/analyze`, {
         method: "POST",
         body: formData,
       });
@@ -149,7 +149,7 @@ const TenderUpload = () => {
   // Save tender to dashboard
   const handleAddToDashboard = async () => {
     try {
-      const response = await fetch("http://localhost:3000/api/tenders/save", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tenders/save`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
