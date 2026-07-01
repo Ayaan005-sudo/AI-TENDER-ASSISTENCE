@@ -16,6 +16,7 @@ async function extractTextFromPDF(buffer) {
 const Tender = require('../models/Tender');
 const User = require('../models/User');
 const { sendConfirmationEmail } = require('../utils/emailService');
+const tenderAdvisorController = require('../controllers/tenderAdvisorController');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -190,6 +191,8 @@ router.get('/user/:email', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
+
+router.get('/relevant', tenderAdvisorController.getRelevantTenders);
 
 router.get('/:id', async (req, res) => {
   try {

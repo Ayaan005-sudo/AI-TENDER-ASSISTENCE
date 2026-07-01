@@ -15,6 +15,7 @@ const translations = {
     noLicenses: "No licenses listed",
     updateProfileDetails: "Update Profile Details",
     uploadTender: "Upload Tender",
+    exploreTenders: "Explore Tenders",
     mySavedTenders: "My Saved Tenders",
     noTendersSaved: "No tenders saved yet",
     fitScore: "Fit Score",
@@ -39,6 +40,7 @@ const translations = {
     noLicenses: "कोई लाइसेंस सूचीबद्ध नहीं है",
     updateProfileDetails: "प्रोफ़ाइल विवरण अपडेट करें",
     uploadTender: "टेंडर अपलोड करें",
+    exploreTenders: "टेंडर खोजें",
     mySavedTenders: "मेरे सहेजे गए टेंडर",
     noTendersSaved: "अभी तक कोई टेंडर सहेजा नहीं गया है",
     fitScore: "फिट स्कोर",
@@ -72,7 +74,7 @@ const renderFormattedContent = (text) => {
       const cleanText = line.replace(/^#+\s*/, '');
       return <h2 key={idx} className="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400 mt-6 mb-3">{cleanText}</h2>;
     }
-    
+
     // Process list items
     if (line.trim().startsWith('-') || line.trim().startsWith('*') || line.trim().startsWith('•')) {
       const cleanText = line.replace(/^[\s-*•]+\s*/, '');
@@ -83,12 +85,12 @@ const renderFormattedContent = (text) => {
         </li>
       );
     }
-    
+
     // Empty line
     if (!line.trim()) {
       return <div key={idx} className="h-2" />;
     }
-    
+
     // Normal paragraphs
     const parts = line.split(/\*\*([^*]+)\*\*/g);
     return (
@@ -376,6 +378,12 @@ export default function Dashboard() {
             >
               {trans.uploadTender}
             </button>
+            <button
+              onClick={() => navigate('/explore-tenders')}
+              className="w-full mt-4 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-600/10 hover:scale-[1.01] transition-all text-sm flex items-center justify-center gap-2"
+            >
+              🔍 {trans.exploreTenders || "Explore Tenders"}
+            </button>
           </div>
         </div>
 
@@ -418,9 +426,8 @@ export default function Dashboard() {
                 {tenders.map((t, idx) => (
                   <div
                     key={idx}
-                    className={`relative border rounded-lg p-4 bg-slate-900 cursor-pointer hover:bg-slate-800 flex items-start gap-4 transition-all duration-200 ${
-                      selectedTenderIds.includes(t._id) ? 'border-indigo-500 shadow-md shadow-indigo-500/10' : 'border-slate-600'
-                    }`}
+                    className={`relative border rounded-lg p-4 bg-slate-900 cursor-pointer hover:bg-slate-800 flex items-start gap-4 transition-all duration-200 ${selectedTenderIds.includes(t._id) ? 'border-indigo-500 shadow-md shadow-indigo-500/10' : 'border-slate-600'
+                      }`}
                     onClick={() => navigate(`/tender/${t._id}`)}
                   >
                     {/* Checkbox overlay/element */}
@@ -459,7 +466,7 @@ export default function Dashboard() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="bg-slate-800 border border-slate-700/60 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col shadow-2xl relative">
-            
+
             {/* Close Button */}
             <button
               onClick={() => { setIsModalOpen(false); setSelectedTenderIds([]); }}
@@ -468,13 +475,13 @@ export default function Dashboard() {
             >
               ✕
             </button>
-            
+
             <div className="p-6 border-b border-slate-700/50">
               <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">
                 {trans.comparisonTitle}
               </h3>
             </div>
-            
+
             <div className="p-6 overflow-y-auto flex-1 space-y-4">
               {comparisonLoading ? (
                 <div className="flex flex-col items-center justify-center py-20 space-y-4">
@@ -491,7 +498,7 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-            
+
             <div className="p-6 border-t border-slate-700/50 flex justify-end">
               <button
                 onClick={() => { setIsModalOpen(false); setSelectedTenderIds([]); }}

@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Tender = require("../models/Tender");
+const TenderRecord = require("../models/tenderRecord");
 
 /**
  * Controller to handle AI Tender Advisor requests.
@@ -174,6 +175,39 @@ User Question: ${message}
     return res.status(200).json({
       success: false,
       message: "Unable to generate AI advice right now."
+    });
+  }
+};
+
+/**
+ * Controller to fetch relevant tenders matching the user's industry.
+ */
+exports.getRelevantTenders = async (req, res) => {
+  try {
+    const industryType = req.query.industryType ||
+      req.headers.industrytype ||
+      req.headers['industry-type'] ||
+      (req.user && req.user.industryType);
+
+    if (!industryType) {
+      return res.status(400).json({
+        success: false,
+        message: "industryType is required"
+      });
+    }
+
+    const filteredTenders = await TenderRecord.find({ industry: industryType });
+
+    return res.status(200).json({
+      success: true,
+      data: filteredTenders
+    });
+  } catch (error) {
+    console.error("Error in getRelevantTenders controller:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
     });
   }
 };
