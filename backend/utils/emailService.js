@@ -72,50 +72,27 @@
 // module.exports = { sendConfirmationEmail, sendReminderEmail };
 
 
+
+
+
 require('dotenv').config();
-const nodemailer = require('nodemailer');
+const SibApiV3Sdk = require('sib-api-v3-sdk');
 
-// FIXED TRANSPORTER (Render-safe + Gmail stable config)
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // TLS use karega
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
+const client = SibApiV3Sdk.ApiClient.instance;
+client.authentications['api-key'].apiKey = process.env.BREVO_API_KEY;
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-/**
- * Send a confirmation email after a tender is saved.
- */
 async function sendConfirmationEmail(toEmail, tenderName, reverseTimeline, deadline, statusMessage) {
-  const deadlineStr =
-    typeof deadline === 'string'
-      ? deadline
-      : deadline?.toISOString().split('T')[0] || '';
+  const deadlineStr = typeof deadline === 'string' ? deadline : deadline?.toISOString().split('T')[0] || '';
 
-  const timelineHtml =
-    Array.isArray(reverseTimeline) && reverseTimeline.length > 0
-      ? '<ul>' +
-      reverseTimeline
-        .map(item => {
-          const dateStr =
-            item.date instanceof Date
-              ? item.date.toISOString().split('T')[0]
-              : item.date || '';
-          return `<li><strong>${item.task}:</strong> ${dateStr}</li>`;
-        })
-        .join('') +
-      '</ul>'
-      : '<p>No timeline tasks available.</p>';
+  const timelineHtml = Array.isArray(reverseTimeline) && reverseTimeline.length > 0
+    ? '<ul>' + reverseTimeline.map(item => {
+      const dateStr = item.date instanceof Date ? item.date.toISOString().split('T')[0] : item.date || '';
+      return `<li><strong>${item.task}:</strong> ${dateStr}</li>`;
+    }).join('') + '</ul>'
+    : '<p>No timeline tasks available.</p>';
 
-  const messageContent = statusMessage
-    ? `<p>${statusMessage}</p>`
-    : timelineHtml;
+  const messageContent = statusMessage ? `<p>${statusMessage}</p>` : timelineHtml;
 
   const htmlBody = `
     <h2>🗂️ Tender Saved: ${tenderName}</h2>
@@ -125,24 +102,16 @@ async function sendConfirmationEmail(toEmail, tenderName, reverseTimeline, deadl
     <p>Best of luck with your submission!</p>
   `;
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: toEmail,
+  await apiInstance.sendTransacEmail({
+    sender: { email: process.env.BREVO_SENDER_EMAIL, name: 'AI Tender Assistant' },
+    to: [{ email: toEmail }],
     subject: `Tender Saved: ${tenderName}`,
-    html: htmlBody,
-  };
-
-  await transporter.sendMail(mailOptions);
+    htmlContent: htmlBody,
+  });
 }
 
-/**
- * Send reminder email for upcoming task
- */
 async function sendReminderEmail(toEmail, tenderName, task, date) {
-  const dateStr =
-    typeof date === 'string'
-      ? date.split('T')[0]
-      : date?.toISOString().split('T')[0] || '';
+  const dateStr = typeof date === 'string' ? date.split('T')[0] : date?.toISOString().split('T')[0] || '';
 
   const htmlBody = `
     <h2>⏰ Reminder: ${task} due soon for ${tenderName}</h2>
@@ -151,17 +120,12 @@ async function sendReminderEmail(toEmail, tenderName, task, date) {
     <p>Please make sure to complete this task on time.</p>
   `;
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: toEmail,
+  await apiInstance.sendTransacEmail({
+    sender: { email: process.env.BREVO_SENDER_EMAIL, name: 'AI Tender Assistant' },
+    to: [{ email: toEmail }],
     subject: `Reminder: ${task} due soon for ${tenderName}`,
-    html: htmlBody,
-  };
-
-  await transporter.sendMail(mailOptions);
+    htmlContent: htmlBody,
+  });
 }
 
-module.exports = {
-  sendConfirmationEmail,
-  sendReminderEmail
-};
+module.exports = { sendConfirmationEmail, sendReminderEmail };
