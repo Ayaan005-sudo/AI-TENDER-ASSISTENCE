@@ -56,7 +56,7 @@ router.post('/analyze', upload.single('file'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'email, tenderName and PDF file are required' });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: email.toLowerCase() }).lean();
     if (!user) {
       return res.status(404).json({ success: false, message: 'User profile not found' });
     }
@@ -128,16 +128,22 @@ Respond only with the JSON object described above.`;
 });
 
 router.post('/save', async (req, res) => {
+  console.log('🟡 Save request received:', new Date().toISOString());
   try {
     const { email, tenderName, analysis } = req.body;
     if (!email || !tenderName || !analysis) {
       return res.status(400).json({ success: false, message: 'email, tenderName and analysis are required' });
     }
-    // Fetch user profile to include snapshot
-    const userProfile = await User.findOne({ email: email.toLowerCase() });
+
+    const userProfile = await User.findOne({ email: email.toLowerCase() })
+      .select('companyName businessType industryType experience turnover')
+      .lean();
+    console.log('🟢 User fetched:', new Date().toISOString());
+
     if (!userProfile) {
       console.warn('User profile not found for email:', email);
     }
+
     const tender = new Tender({
       userEmail: email.toLowerCase(),
       tenderName,
@@ -145,10 +151,15 @@ router.post('/save', async (req, res) => {
       fitScore: analysis.fitScore || 0,
       eligibilityGap: analysis.eligibilityGap || [],
       requiredDocuments: analysis.requiredDocuments || [],
-      reverseTimeline: (analysis.reverseTimeline || []).map(item => ({
-        task: item.task,
-        date: item.date ? new Date(item.date) : undefined,
-      })),
+      reverseTimeline: (analysis.reverseTimeline || [])
+        .map(item => {
+          const parsedDate = new Date(item.date);
+          return {
+            task: item.task,
+            date: item.date && !isNaN(parsedDate.getTime()) ? parsedDate : null,
+          };
+        })
+        .filter(item => item.date !== null),
       deadline: analysis.deadline && !isNaN(new Date(analysis.deadline)) ? new Date(analysis.deadline) : undefined,
       isExpired: analysis.isExpired || false,
       companySnapshot: userProfile ? {
@@ -159,21 +170,25 @@ router.post('/save', async (req, res) => {
         turnover: userProfile.turnover,
       } : undefined,
     });
+
     await tender.save();
-    // Determine custom status message based on analysis flags
+    console.log('🟢 Tender saved:', new Date().toISOString());
+
     const statusMessage = analysis.isExpired
       ? 'This tender has been saved to your dashboard. However, the deadline has already passed, so no action items are required.'
       : analysis.isIndustryMismatch
         ? 'This tender has been saved to your dashboard. However, this tender does not match your business industry, so no action items are required.'
         : null;
-    try {
-      await sendConfirmationEmail(email, tenderName, tender.reverseTimeline, tender.deadline, statusMessage);
-    } catch (emailErr) {
-      console.warn('Failed to send confirmation email:', emailErr);
-    }
-    return res.status(201).json({ success: true, data: tender });
+
+    res.status(201).json({ success: true, data: tender });
+    console.log('🟢 Response sent:', new Date().toISOString());
+
+    sendConfirmationEmail(email, tenderName, tender.reverseTimeline, tender.deadline, statusMessage)
+      .then(() => console.log('📧 Email sent'))
+      .catch(emailErr => console.warn('📧 Email failed:', emailErr.message));
+
   } catch (error) {
-    console.error('Error saving tender:', error);
+    console.error('🔴 Error saving tender:', error);
     return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
@@ -184,7 +199,7 @@ router.get('/user/:email', async (req, res) => {
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email parameter is required' });
     }
-    const tenders = await Tender.find({ userEmail: email });
+    const tenders = await Tender.find({ userEmail: email }).lean();
     return res.status(200).json({ success: true, data: tenders });
   } catch (error) {
     console.error('Error fetching tenders:', error);
@@ -206,6 +221,7 @@ router.get('/:id', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error', error: error.message });
   }
 });
+
 
 router.delete('/:id', async (req, res) => {
   try {

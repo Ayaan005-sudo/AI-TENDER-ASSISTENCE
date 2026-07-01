@@ -7,6 +7,7 @@ const tenderSchema = new mongoose.Schema(
       required: [true, 'User email is required'],
       trim: true,
       lowercase: true,
+      index: true,
     },
     tenderName: {
       type: String,

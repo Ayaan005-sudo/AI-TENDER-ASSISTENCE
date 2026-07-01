@@ -40,6 +40,19 @@
 
 require('dotenv').config();
 
+const fsSync = require('fs');
+const originalLog = console.log;
+const originalError = console.error;
+
+console.log = function(...args) {
+    const msg = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+    fsSync.writeSync(1, msg + '\n');
+};
+console.error = function(...args) {
+    const msg = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+    fsSync.writeSync(2, msg + '\n');
+};
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -66,7 +79,21 @@ app.use(cors());
 
 const port = process.env.PORT || 3000;
 
-mongoose.connect(process.env.MONGO_URI)
+// Add connection event listeners with timestamps
+mongoose.connection.on('connected', () => {
+    console.log(`[${new Date().toISOString()}] 🟢 Mongoose connected to DB`);
+});
+mongoose.connection.on('disconnected', () => {
+    console.log(`[${new Date().toISOString()}] 🔴 Mongoose disconnected from DB`);
+});
+mongoose.connection.on('reconnected', () => {
+    console.log(`[${new Date().toISOString()}] 🟡 Mongoose reconnected to DB`);
+});
+mongoose.connection.on('error', (err) => {
+    console.error(`[${new Date().toISOString()}] ❌ Mongoose connection error:`, err);
+});
+
+mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 8000 })
     .then(() => console.log('mongoose get connected'))
     .catch((err) => console.error('MongoDB connection error:', err));
 
