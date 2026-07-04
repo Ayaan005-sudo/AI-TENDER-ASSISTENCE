@@ -44,12 +44,21 @@ const fsSync = require('fs');
 const originalLog = console.log;
 const originalError = console.error;
 
+const util = require('util');
 console.log = function(...args) {
-    const msg = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+    const msg = args.map(arg => {
+        if (arg instanceof Error) return arg.stack;
+        if (typeof arg === 'object') return util.inspect(arg, { depth: null });
+        return arg;
+    }).join(' ');
     fsSync.writeSync(1, msg + '\n');
 };
 console.error = function(...args) {
-    const msg = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' ');
+    const msg = args.map(arg => {
+        if (arg instanceof Error) return arg.stack;
+        if (typeof arg === 'object') return util.inspect(arg, { depth: null });
+        return arg;
+    }).join(' ');
     fsSync.writeSync(2, msg + '\n');
 };
 
